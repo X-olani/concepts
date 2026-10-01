@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silver Collection</title>
+<style>
+  :root {
+    --bg: #1b1b1c;
+    --text: #afaeae;
+    --muted: #a8a8a8;
+    --rule: #6e6e6e;
+    --nav-bg: #ffffff;
+    --nav-text: #1b1b1c;
+    --nav-h: 72px;
+    --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;            /* the wheel takes the scroll, not the page */
+    background: #ffff;
+    color: var(--bg);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Nav ---------- */
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: var(--nav-h);
+    background: var(--nav-bg);
+    color: var(--nav-text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 clamp(20px, 4vw, 56px);
+    z-index: 20;
+  }
+  .nav__logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: inherit;
+    text-decoration: none;
+  }
+  .nav__links { display: flex; gap: clamp(16px, 3vw, 40px); list-style: none; }
+  .nav__links a {
+    color: inherit;
+    text-decoration: none;
+    font-size: 15px;
+    padding: 6px 0;
+    border-bottom: 1px solid transparent;
+    transition: border-color .2s;
+  }
+  .nav__links a:hover, .nav__links a:focus-visible { border-bottom-color: currentColor; outline: none; }
+
+  /* ---------- Stage ---------- */
+  .stage {
+    position: fixed;
+    inset: var(--nav-h) 0 0 0;
+    overflow: hidden;
+    touch-action: none;
+    cursor: grab;
+  }
+  .stage.is-dragging { cursor: grabbing; }
+
+  .segment {
+    position: absolute;
+    overflow: hidden;
+    background: linear-gradient(135deg, #d9d9d9, #b5b5b5);
+    will-change: transform;
+    cursor: pointer;
+  }
+  .segment img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+  }
+  .segment__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6a6a6a;
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  /* ---------- Info panel ---------- */
+  .panel {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .panel__inner {
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .panel.is-changing .panel__inner {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .rule {
+    width: min(220px, 70%);
+    height: 2px;
+    margin: 0 auto;
+    background: var(--rule);
+  }
+  .panel__year {
+    font-size: clamp(44px, 5.2vw, 76px);
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    padding-left: 0.12em; /* balances letter-spacing so it centres */
+    margin: 48px 0 20px;
+  }
+  .panel__title {
+    font-size: clamp(22px, 2.2vw, 30px);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    margin-bottom: 40px;
+  }
+  .panel__desc {
+    max-width: 320px;
+    margin: 32px auto 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .panel__details {
+    margin-top: 28px;
+    display: grid;
+    gap: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .panel__details dt { color: var(--muted); }
+  .panel__details dd { color: var(--text); }
+
+  .counter {
+    position: absolute;
+    left: clamp(24px, 5vw, 80px);
+    bottom: 28px;
+    font-size: 13px;
+    color: var(--muted);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* ---------- Mobile: text sits at the bottom ---------- */
+  @media (max-width: 760px) {
+    :root { --nav-h: 60px; }
+    .nav__links { display: none; }
+    .panel {
+      top: auto;
+      bottom: 0;
+      transform: none;
+      width: 100%;
+      padding: 80px 24px 56px;
+      background: linear-gradient(to top, var(--bg) 60%, transparent);
+    }
+    .panel__year { margin: 20px 0 10px; }
+    .panel__title { margin-bottom: 20px; }
+    .panel__desc { margin-top: 16px; }
+    .panel__details { display: none; }
+    .rule { width: 140px; }
+    .counter { bottom: 20px; left: 24px; }
+    .panel__desc { margin-left: auto; margin-right: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel__inner { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav__logo" href="#">Logo</a>
+  <ul class="nav__links">
+    <li><a href="#">Collections</a></li>
+    <li><a href="#">About</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="stage" id="stage" aria-roledescription="carousel" aria-label="Collection">
+  <section class="panel" id="panel" aria-live="polite">
+    <div class="panel__inner">
+      <div class="rule"></div>
+      <h1 class="panel__year" id="year"></h1>
+      <h2 class="panel__title" id="title"></h2>
+      <div class="rule"></div>
+      <p class="panel__desc" id="desc"></p>
+      <dl class="panel__details" id="details"></dl>
+    </div>
+  </section>
+  <div class="counter" id="counter"></div>
+</main>
+
+<script>
+/* =========================================================
+   CONTENT — edit this array.
+   src: leave "" until you have the image path/URL.
+   details: any number of { label, value } rows.
+   ========================================================= */
+const items = [
+  {
+    src: "./images/image1.jpg",
+    alt: "Radiant cut solitaire ring",
+    year: "2026",
+    title: "Rings & Bracelets",
+    description: "",
+    details: [
+      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Pear" },
+      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Round Brilliant, Cushion, Heart, Trilliant & Marquise" },
+      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Oval" }
+    ]
+  },
+  {
+    src: "./images/image2.jpg",
+    alt: "Heart cut solitaire ring",
+    year: "2026",
+    title: "Necklaces & Earrings",
+    description: "",
+    details: [ 
+      { label: "Small Round Brilliant Diamond Hoop Earrings", value: "Diamond Cut: Round Brilliant" } , 
+      { label: "Diamond Station Tennis Necklace", value: "Diamond Cut: Round Brilliant" },
+      { label: "Circle of Life Diamond Necklace", value: "Diamond Cut: Round Brilliant" }
+       
+    ]
+  },
+  {
+    src: "./images/image3.jpg",
+    alt: "Sculptural open ring",
+    year: "2026",
+    title: "Necklaces & Bracelets",
+    description: "",
+    details: [
+      { label: "Small Southern Cross Diamond Pendant", value: "Diamond Cut: Round Brilliant" },
+      { label: "Southern Cross Diamond Bracelet", value: "Diamond Cut: Round Brilliant" },
+      { label: "Diamond Station Tennis Bracelet", value: "Diamond Cut: Round Brilliant" }
+    ]
+  },
+  {
+    src: "./images/image4.jpg",
+    alt: "Twisted leaf ring",
+    year: "2026",
+    title: "Necklaces, Earrings & Rings",
+    description: "",
+    details: [
+      { label: "Southern Cross Tsavorite & Diamond Earrings", value: "Tsavorite Cut: Round" },
+      { label: "Southern Cross Tsavorite & Diamond Pendant", value: "Tsavorite Cut: Round" },
+      { label: "Southern Cross Diamond Necklace", value: "Diamond Cut: Round Brilliant" },
+      { label: "Half Eternity Tsavorite Ring", value: "Tsavorite Cut: Round" },
+      { label: "Southern Cross Medium Diamond Ring", value: "Diamond Cut: Round Brilliant" }
+    ]
+  },
+  {
+    src: "./images/image5.jpg",
+    alt: "Teardrop ring",
+    year: "2026",
+    title: "Tanzanite",
+    description: "",
+    details: [
+      { label: "Tanzanite Oval Microset Overlap Ring", value: "Diamond Cut: Round Brilliant" },
+      { label: "Tanzanite Oval Solitaire Ring", value: "Tanzanite Cut: Oval" },
+      { label: "Toi et Moi Tanzanite Ring", value: "Tanzanite Cut: Pear Shape" },
+      { label: "Emerald-Cut Tanzanite Bezel Set Bracelet", value: "Tanzanite Cut: Emerald Cut" }
+  
+    ]
+  },
+  {
+    src: "./images/image6.jpg",
+    alt: "Oval solitaire ring",
+    year: "2026",
+    title: "Rings",
+    description: "",
+    details: [
+    { label: "Infinity Ring", value: "18K Yellow Gold" },
+      { label: "Open Solitaire Dress Ring", value: "Diamond Cuts: Oval & Pear" },
+      { label: "Table Mountain Gents Single Diamond Ring", value: "Diamond Cut: Round Brilliant" },
+      { label: "Infinity Classic Diamond Ring", value: "Diamond Cut: Round Brilliant" }
+    ]
+  },
+  {
+    src: "./images/image7.jpg",
+    alt: "Stacking bands",
+    year: "2026",
+    title: "Necklaces, Earrings & Rings",
+    description: "",
+    details: [
+      { label: "Southern Cross Tsavorite & Diamond Earrings", value: "Tsavorite Cut: Round" },
+      { label: "Southern Cross Tsavorite & Diamond Pendant", value: "Tsavorite Cut: Round" },
+      { label: "Southern Cross Diamond Necklace", value: "Diamond Cut: Round Brilliant" },
+      { label: "Half Eternity Tsavorite Ring", value: "Tsavorite Cut: Round" },
+      { label: "Southern Cross Medium Diamond Ring", value: "Diamond Cut: Round Brilliant" }
+    ]
+  },
+  {
+    src: "./images/image8.jpg",
+    alt: "Signet ring",
+    year: "2026",
+    title: "Earrings & Rings",
+    description: "",
+    details: [
+      { label: "Fancy Yellow Overlap Ring", value: "Yellow Diamond Cut: Princess" },
+      { label: "Pear Fancy Yellow Overlap Ring", value: "Centre Diamond Cut: Pear" },
+      { label: "Fancy Yellow Diamond Drop Earrings", value: "Yellow Diamond Cut: Pear" }
+    ]
+  }
+];
+
+/* =========================================================
+rolling of the well
+   ========================================================= */
+const STEP_DEG   = 24;    // angle between each image
+const GAP_PX     = 34;    // dark gap between images
+const WHEEL_SENS = 1 / 300; // scroll sensitivity (higher = faster)
+const DRAG_SENS  = 1 / 260; // drag / swipe sensitivity
+const EASE       = 0.12;  // 0–1, how quickly the wheel catches up
+const SNAP_DELAY = 140;   // ms after scrolling stops before snapping
+
+/* ========================================================= */
+const stage   = document.getElementById("stage");
+const panel   = document.getElementById("panel");
+const yearEl  = document.getElementById("year");
+const titleEl = document.getElementById("title");
+const descEl  = document.getElementById("desc");
+const detEl   = document.getElementById("details");
+const counter = document.getElementById("counter");
+
+const N = items.length;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let current = 0;   // animated position (float, in items)
+let target  = 0;   // where we're heading
+let active  = -1;  // index shown in the panel
+let geom    = {};
+let snapTimer = null;
+let lastDir = 0;
+let rafId = null;
+
+// Build segments from the array
+const segments = items.map((item, i) => {
+  const el = document.createElement("div");
+  el.className = "segment";
+  el.setAttribute("role", "button");
+  el.setAttribute("tabindex", "-1");
+  el.setAttribute("aria-label", item.alt || item.title);
+
+  if (item.src) {
+    const img = document.createElement("img");
+    img.src = item.src;
+    img.alt = item.alt || "";
+    img.draggable = false;
+    el.appendChild(img);
+  } else {
+    const ph = document.createElement("span");
+    ph.className = "segment__placeholder";
+    ph.textContent = `Image ${i + 1}`;
+    el.appendChild(ph);
+  }
+
+  el.addEventListener("click", () => {
+    if (wasDrag) return;
+    goTo(current + wrap(i - current));
+  });
+
+  stage.appendChild(el);
+  return el;
+});
+
+// Wrap an offset into [-N/2, N/2) so the wheel loops forever
+function wrap(d) {
+  return ((d % N) + N + N / 2) % N - N / 2;
+}
+const mod = (n) => ((n % N) + N) % N;
+
+/* ---------- Geometry ---------- */
+function layout() {
+  const w = stage.clientWidth;
+  const h = stage.clientHeight;
+  const mobile = w <= 760;
+
+  // Inner radius (edge of the dark circle), ring thickness, and centre
+  const r     = mobile ? h * 0.55 : h * 0.62;
+  const ring  = mobile ? Math.min(h * 0.38, w * 0.62) : Math.min(h * 0.42, w * 0.42);
+  const R     = r + ring;
+  const panelW = mobile ? w * 0.28 : Math.min(Math.max(w * 0.42, 380), 640);
+  const cx    = panelW - r;
+  const cy    = mobile ? h * 0.38 : h / 2;
+
+  const step  = STEP_DEG * Math.PI / 180;
+  const gap   = GAP_PX / ((r + R) / 2);
+  const a     = step / 2 - gap / 2;   // half-angle of one image
+
+  const left  = r * Math.cos(a);      // x of the inner corners
+  const segW  = R - left;
+  const segH  = 2 * R * Math.sin(a);
+
+  // Annular-sector clip path in the segment's own coordinates
+  const px = (x) => (x - left).toFixed(2);
+  const py = (y) => (y + segH / 2).toFixed(2);
+  const oTop = [R * Math.cos(a), -R * Math.sin(a)];
+  const oBot = [R * Math.cos(a),  R * Math.sin(a)];
+  const iBot = [r * Math.cos(a),  r * Math.sin(a)];
+  const iTop = [r * Math.cos(a), -r * Math.sin(a)];
+  const path =
+    `path("M ${px(oTop[0])} ${py(oTop[1])} ` +
+    `A ${R} ${R} 0 0 1 ${px(oBot[0])} ${py(oBot[1])} ` +
+    `L ${px(iBot[0])} ${py(iBot[1])} ` +
+    `A ${r} ${r} 0 0 0 ${px(iTop[0])} ${py(iTop[1])} Z")`;
+
+  segments.forEach((el) => {
+    el.style.left   = `${cx + left}px`;
+    el.style.top    = `${cy - segH / 2}px`;
+    el.style.width  = `${segW}px`;
+    el.style.height = `${segH}px`;
+    el.style.transformOrigin = `${-left}px ${segH / 2}px`;
+    el.style.clipPath = path;
+    el.style.webkitClipPath = path;
+  });
+
+  geom = { cx, cy, r, mobile };
+  fitPanel();
+  render();
+}
+
+/* Keep the text inside the black circle.
+   The circle gets narrower above and below its centre, so the text
+   width is set to the width of the circle at the top/bottom of the text. */
+function fitPanel() {
+  if (geom.mobile) {
+    panel.style.left = panel.style.width = panel.style.top = "";
+    return;
+  }
+  const { cx, cy, r } = geom;
+  const margin = 40;                 // space between text and the images
+  const left = Math.max(margin, 24);
+  let width = cx + r - margin - left;
+  for (let k = 0; k < 4; k++) {       // measure → narrow → measure again
+    panel.style.left  = `${left}px`;
+    panel.style.width = `${Math.max(width, 200)}px`;
+    const halfH = panel.offsetHeight / 2;
+    const edge = cx + Math.sqrt(Math.max(r * r - halfH * halfH, 0)) - margin;
+    width = edge - left;
+  }
+  panel.style.top = `${cy}px`;
+}
+
+/* ---------- Drawing ---------- */
+function render() {
+  segments.forEach((el, i) => {
+    const d = wrap(i - current);
+    const deg = d * STEP_DEG;
+    if (Math.abs(deg) > 110) {
+      el.style.visibility = "hidden";
+      return;
+    }
+    el.style.visibility = "visible";
+    el.style.transform = `rotate(${deg}deg)`;
+  });
+
+  const idx = mod(Math.round(current));
+  if (idx !== active) setActive(idx);
+}
+
+function setActive(idx) {
+  const first = active === -1;
+  active = idx;
+  counter.textContent = `${idx + 1} / ${N}`;
+  segments.forEach((el, i) => el.setAttribute("aria-current", i === idx ? "true" : "false"));
+
+  if (first || reduceMotion) {
+    fillPanel(items[idx]);
+    return;
+  }
+  panel.classList.add("is-changing");
+  clearTimeout(setActive.t);
+  setActive.t = setTimeout(() => {
+    fillPanel(items[active]);
+    panel.classList.remove("is-changing");
+  }, 220);
+}
+
+function fillPanel(item) {
+  yearEl.textContent  = item.year || "";
+  titleEl.textContent = item.title || "";
+  descEl.textContent  = item.description || "";
+  descEl.style.display = item.description ? "" : "none";
+  detEl.innerHTML = "";
+  (item.details || []).forEach(({ label, value }) => {
+    const row = document.createElement("div");
+    row.innerHTML = `<dt></dt><dd></dd>`;
+    row.querySelector("dt").textContent = label;
+    row.querySelector("dd").textContent = value;
+    detEl.appendChild(row);
+  });
+  if (geom.cx !== undefined) fitPanel();
+}
+
+/* ---------- Animation loop ---------- */
+function tick() {
+  const diff = target - current;
+  if (Math.abs(diff) < 0.0005) {
+    current = target;
+    render();
+    rafId = null;
+    return;
+  }
+  current += reduceMotion ? diff : diff * EASE;
+  render();
+  rafId = requestAnimationFrame(tick);
+}
+function animate() {
+  if (!rafId) rafId = requestAnimationFrame(tick);
+}
+function goTo(t) {
+  target = t;
+  animate();
+}
+function scheduleSnap() {
+  clearTimeout(snapTimer);
+  snapTimer = setTimeout(() => {
+    // lean toward the direction of travel so one mouse-wheel notch = one image
+    goTo(Math.round(target + 0.3 * lastDir));
+  }, SNAP_DELAY);
+}
+
+/* ---------- Input: mouse wheel / trackpad ---------- */
+window.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+  const px = e.deltaMode === 1 ? delta * 40 : delta; // line mode → px
+  lastDir = Math.sign(px);
+  target += px * WHEEL_SENS;
+  animate();
+  scheduleSnap();
+}, { passive: false });
+
+/* ---------- Input: drag / swipe ---------- */
+let dragging = false, startY = 0, startTarget = 0, wasDrag = false;
+
+stage.addEventListener("pointerdown", (e) => {
+  dragging = true;
+  wasDrag = false;
+  startY = e.clientY;
+  startTarget = target;
+  stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+  const dy = startY - e.clientY;
+  if (Math.abs(dy) > 5) {
+    wasDrag = true;
+    stage.classList.add("is-dragging");
+  }
+  lastDir = Math.sign(dy);
+  target = startTarget + dy * DRAG_SENS;
+  animate();
+});
+function endDrag() {
+  if (!dragging) return;
+  dragging = false;
+  stage.classList.remove("is-dragging");
+  if (wasDrag) goTo(Math.round(target + 0.3 * lastDir));
+  setTimeout(() => (wasDrag = false), 0);
+}
+stage.addEventListener("pointerup", endDrag);
+stage.addEventListener("pointercancel", endDrag);
+
+/* ---------- Input: keyboard ---------- */
+window.addEventListener("keydown", (e) => {
+  if (["ArrowDown", "ArrowRight", "PageDown"].includes(e.key)) {
+    e.preventDefault();
+    goTo(Math.round(target) + 1);
+  } else if (["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)) {
+    e.preventDefault();
+    goTo(Math.round(target) - 1);
+  }
+});
+
+window.addEventListener("resize", layout);
+layout();
+</script>
+</body>
+</html>

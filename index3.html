@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luxury Cape Town | Things to do</title>
+<style>
+  :root {
+    --ink: #1f1c18;
+    --ink-soft: #6b645a;
+    --white: #ffffff;
+    --tint: #f2eee8;
+    --brass: #9c7a36;
+    --line: #e3ddd3;
+    --nav-h: 72px;
+    --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
+  body {
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--white);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  img { display: block; max-width: 100%; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+
+  .wrap { width: min(1240px, 100% - 48px); margin: 0 auto; }
+
+  /* ---------- navbar ---------- */
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: var(--nav-h);
+    background: var(--white);
+    border-bottom: 1px solid var(--line);
+    z-index: 50;
+  }
+  .nav .wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .nav__logo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .nav__links { display: flex; gap: 32px; list-style: none; }
+  .nav__links a { text-decoration: none; font-size: 15px; padding: 6px 0; border-bottom: 1px solid transparent; }
+  .nav__links a:hover { border-bottom-color: var(--ink); }
+
+  main { padding-top: var(--nav-h); }
+
+  /* ---------- hearoimage ---------- */
+  .hero {
+    position: relative;
+    height: calc(100vh - var(--nav-h));
+    min-height: 540px;
+    max-height: 920px;
+    overflow: hidden;
+    background: #1d4a47;
+    color: var(--white);
+  }
+  .hero video, .hero__plane {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .hero video { object-fit: cover; }
+  .hero__shade {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 75% at 100% 100%, rgba(10,24,24,.72) 0%, rgba(10,24,24,0) 100%),
+      rgba(10,24,24,.18);
+  }
+  .hero__plane { pointer-events: none; }
+  .plane { filter: drop-shadow(6px 10px 6px rgba(0,0,0,.35)); }
+
+  /* one-time draw-in of the trail; remove the animation lines for a fully static plane */
+  .trail {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: draw 2.6s ease-out .4s forwards;
+  }
+  .plane { opacity: 0; animation: appear .8s ease-out 2.1s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes appear { to { opacity: 1; } }
+
+  .hero__text { position: absolute; left: 0; bottom: 0; width: 100%; padding-bottom: 64px; }
+  .hero__text .wrap { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+  .mob { display: none; }
+  .eyebrow { font-size: 14px; letter-spacing: .16em; text-transform: uppercase; opacity: .85; }
+  .hero h1 {
+    margin-top: 14px;
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 300;
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    max-width: 16ch;
+  }
+  .hero p { margin-top: 18px; max-width: 46ch; font-size: 17px; opacity: .92; }
+  .btn {
+    display: inline-block;
+    padding: 14px 26px;
+    border: 1px solid currentColor;
+    background: transparent;
+    text-decoration: none;
+    font-size: 15px;
+    transition: background .2s, color .2s;
+  }
+  .hero .btn { margin-top: 28px; }
+  .hero .btn:hover { background: var(--white); color: var(--ink); }
+
+  .video-toggle {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,.6);
+    background: rgba(0,0,0,.2);
+    color: var(--white);
+    font-size: 13px;
+  }
+
+  /* ---------- Sections ---------- */
+  .section { padding: 96px 0; }
+  .intro { display: grid; grid-template-columns: 1fr 1.3fr; gap: 64px; align-items: start; }
+  .intro h2, .section__head h2 { font-size: clamp(28px, 3vw, 42px); font-weight: 300; line-height: 1.15; }
+  .intro p { color: var(--ink-soft); font-size: 17px; }
+  .intro p + p { margin-top: 16px; }
+
+  .section__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .section__head p { color: var(--ink-soft); margin-top: 8px; max-width: 52ch; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filters button {
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    font-size: 14px;
+  }
+  .filters button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--white); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 56px 32px;
+  }
+  .exp__img {
+    aspect-ratio: 3 / 2;
+    background: var(--tint);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .exp__img img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ---------- Live updates ---------- */
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .live__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brass);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .live.is-done .live__dot { animation: none; background: var(--line); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .35; transform: scale(.7); }
+  }
+  .exp { position: relative; }
+  .exp__new {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 5px 10px;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .exp.is-entering { animation: enter .7s ease-out both; }
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .grid-empty { color: var(--ink-soft); padding: 24px 0; }
+  .exp__meta {
+    display: flex;
+    gap: 14px;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .exp__meta span:first-child { color: var(--brass); }
+  .exp h3 { font-size: 22px; font-weight: 400; margin-top: 6px; }
+  .exp p { color: var(--ink-soft); margin-top: 8px; font-size: 15px; }
+
+  /* ---------- Feature band ---------- */
+  .feature { background: var(--tint); }
+  .feature__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .feature .exp__img { aspect-ratio: 4 / 3; background: #e6e0d6; }
+  .feature h2 { font-size: clamp(28px, 3vw, 42px); font-weight: 300; line-height: 1.15; margin-top: 10px; }
+  .feature p { color: var(--ink-soft); margin-top: 16px; font-size: 17px; max-width: 48ch; }
+  .feature .btn { margin-top: 28px; }
+  .feature .btn:hover { background: var(--ink); color: var(--white); }
+
+  footer { background: var(--ink); color: #cfc7ba; padding: 40px 0; font-size: 14px; }
+
+  @media (max-width: 860px) {
+    .intro, .feature__grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+  @media (max-width: 640px) {
+    :root { --nav-h: 60px; }
+    .nav__links li:not(:last-child) { display: none; }
+    .section { padding: 72px 0; }
+    .grid { grid-template-columns: 1fr; }
+    .hero__text { padding-bottom: 80px; }
+    .desk { display: none; }
+    .hero__shade { background: linear-gradient(to top, rgba(10,24,24,.78) 0%, rgba(10,24,24,0) 65%), rgba(10,24,24,.18); }
+    .mob { display: inline; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .trail { animation: none; stroke-dashoffset: 0; }
+    .plane { animation: none; opacity: 1; }
+    .live__dot, .exp.is-entering { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="nav__logo" href="#top">Shimansky</a>
+    <ul class="nav__links">
+      <li><a href="#experiences">Experiences</a></li>
+      <li><a href="#shimansky">Diamonds</a></li>
+      <li><a href="#plan">Plan your visit</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main id="top">
+  <header class="hero">
+    <!-- Keep cape-town-hero.mp4 and cape-town-hero-poster.jpg in the same folder as this file -->
+    <video id="heroVideo" autoplay muted loop playsinline poster="cape-town-hero-poster.jpg">
+      <source src="./videos/cape-town-hero.mp4" type="video/mp4">
+    </video>
+    <div class="hero__shade"></div>
+
+    <!-- White plane + contrail over the video.
+         .desk is used on wider screens, .mob on phones, so the plane always points at the text. -->
+    <svg class="hero__plane" viewBox="0 0 1600 900" preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="trailDesk" gradientUnits="userSpaceOnUse" x1="-40" y1="-30" x2="880" y2="360">
+          <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#fff" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#fff" stop-opacity=".95"/>
+        </linearGradient>
+        <linearGradient id="trailMob" gradientUnits="userSpaceOnUse" x1="1120" y1="20" x2="1400" y2="400">
+          <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#fff" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#fff" stop-opacity=".95"/>
+        </linearGradient>
+        <!-- plane drawn nose-right -->
+        <g id="planeShape" fill="#fff">
+          <path d="M44 0 C42 -3.5 34 -4.5 24 -4.5 L-28 -4.5 C-33 -4.5 -37 -2 -39 0 C-37 2 -33 4.5 -28 4.5 L24 4.5 C34 4.5 42 3.5 44 0 Z"/>
+          <path d="M12 -4 L-8 -42 L-16 -42 L-4 -4 Z"/>
+          <path d="M12 4 L-8 42 L-16 42 L-4 4 Z"/>
+          <path d="M-27 -4 L-36 -17 L-41 -17 L-36 -3 Z"/>
+          <path d="M-27 4 L-36 17 L-41 17 L-36 3 Z"/>
+        </g>
+      </defs>
+
+      <g class="desk">
+        <path class="trail" pathLength="100" d="M -40 -30 C 260 110, 600 170, 880 360"
+              fill="none" stroke="url(#trailDesk)" stroke-width="3" stroke-linecap="round"/>
+        <use class="plane" href="#planeShape" transform="translate(880 360) rotate(34) scale(1.35)"/>
+      </g>
+
+      <g class="mob">
+        <path class="trail" pathLength="100" d="M 1120 20 C 1250 140, 1330 240, 1400 400"
+              fill="none" stroke="url(#trailMob)" stroke-width="3" stroke-linecap="round"/>
+        <use class="plane" href="#planeShape" transform="translate(1400 400) rotate(66) scale(1.2)"/>
+      </g>
+    </svg>
+
+    <div class="hero__text">
+      <div class="wrap">
+        <div class="eyebrow">Cape Town, South Africa</div>
+        <h1>Cape Town, done beautifully</h1>
+        <p>The finest ways to spend your days in the Mother City, from the ocean to the mountain to the Winelands.</p>
+        <a class="btn" href="#experiences">Explore experiences</a>
+      </div>
+    </div>
+    <button class="video-toggle" id="videoToggle" type="button" aria-pressed="false">Pause video</button>
+  </header>
+
+  <section class="section">
+    <div class="wrap intro">
+      <h2>A city made for you</h2>
+      <div>
+        <p>Cape Town sits between two oceans and a mountain, with some of the world's best food and wine less than an hour away. It's a place to take things at your own pace.</p>
+        <p>These are the experiences we recommend most to our guests, whether you're here for a weekend or a fortnight.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="experiences" style="padding-top:0">
+    <div class="wrap">
+      <div class="section__head">
+        <div>
+          <h2>Things to do</h2>
+          <p>Handpicked luxury experiences in and around Cape Town.</p>
+          <div class="live" id="liveStatus" role="status" aria-live="polite">
+            <span class="live__dot"></span><span id="liveText">Updating with new events</span>
+          </div>
+        </div>
+        <div class="filters" id="filters" role="group" aria-label="Filter experiences"></div>
+      </div>
+      <div class="grid" id="expGrid"></div>
+    </div>
+  </section>
+
+  <section class="section feature" id="shimansky">
+    <div class="wrap feature__grid">
+      <div class="exp__img">
+       <img src="./images/rockwell.jpg" alt="">
+       
+      </div>
+      <div>
+        <div class="eyebrow" style="color:var(--brass)">V&amp;A Waterfront</div>
+        <h2>Follow a diamond from mine to finger</h2>
+        <p>Discover the story of diamonds at the Cape Town Diamond Museum, then go behind the scenes with The Rockwell Diamond Experience at Shimansky.</p>
+        <a class="btn" href="#plan">Book the experience</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="plan">
+    <div class="wrap intro">
+      <h2>Plan your visit</h2>
+      <div>
+        <p>Let us know when you're in Cape Town and what you'd like to see, and we'll help you plan your time.</p>
+        <a class="btn" href="#" style="margin-top:24px">Contact us</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Shimansky · Cape Town</div>
+</footer>
+
+<script>
+/* =========================================================
+  array of object to hoild the experience
+   ========================================================= */
+const experiences = [
+  {
+    title: "Helicopter flight over the Atlantic Seaboard",
+    category: "Scenic",
+    area: "V&A Waterfront",
+    duration: "From 30 min",
+    description: "Fly over Clifton, Camps Bay and the Twelve Apostles, with Table Mountain on one side and the ocean on the other.",
+    src: "./images/todo1.jpg"
+  },
+  {
+    title: "Sunset on Table Mountain",
+    category: "Scenic",
+    area: "Table Mountain",
+    duration: "2–3 hours",
+    description: "Ride the rotating cable car to the top and watch the sun set over the city and the Atlantic.",
+    src: "./images/todo2.jpg"
+  },
+  {
+    title: "Private sunset cruise",
+    category: "Scenic",
+    area: "V&A Waterfront",
+    duration: "2 hours",
+    description: "Sail out of the harbour with bubbly in hand for views of the city lights and Table Mountain.",
+    src: "./images/todo3.jpg"
+  },
+  {
+    title: "Winelands by private driver",
+    category: "Food & Wine",
+    area: "Stellenbosch & Franschhoek",
+    duration: "Full day",
+    description: "Tastings and a long lunch at wine estates set against the mountains, with a driver so you can relax.",
+    src: "./images/todo4.jpg"
+  },
+  {
+    title: "Franschhoek Wine Tram",
+    category: "Food & Wine",
+    area: "Franschhoek",
+    duration: "Full day",
+    description: "Hop on and off between vineyards in the Franschhoek valley at your own pace.",
+    src: "./images/todo5.jpg"
+  },
+  {
+    title: "Chef's table dining",
+    category: "Food & Wine",
+    area: "City & Constantia",
+    duration: "Evening",
+    description: "Tasting menus at some of South Africa's most celebrated restaurants, paired with local wines.",
+    src: "./images/todo6.jpg"
+  },
+  {
+    title: "Cape Point and the penguins at Boulders",
+    category: "Nature",
+    area: "Cape Peninsula",
+    duration: "Full day",
+    description: "Drive the coast via Chapman's Peak to Cape Point, stopping to see the African penguins at Boulders Beach.",
+    src: "./images/todo7.jpg"
+  },
+  {
+    title: "Whale watching in Hermanus",
+    category: "Nature",
+    area: "Hermanus",
+    duration: "Full day",
+    description: "Southern right whales come close to shore in season, roughly June to November.",
+    src: "./images/todo8.jpg"
+  },
+  {
+    title: "Kirstenbosch National Botanical Garden",
+    category: "Nature",
+    area: "Newlands",
+    duration: "Half day",
+    description: "Walk the treetop canopy walkway, or catch a summer sunset concert on the lawns.",
+    src: "./images/todo9.jpg"
+  },
+  {
+    title: "Zeitz MOCAA",
+    category: "Culture",
+    area: "V&A Waterfront",
+    duration: "2–3 hours",
+    description: "The largest museum of contemporary African art, in a converted grain silo at the Waterfront.",
+    src: "./images/todo10.jpg"
+  },
+  {
+    title: "Cape Town Diamond Museum",
+    category: "Culture",
+    area: "V&A Waterfront",
+    duration: "1–2 hours",
+    description: "The story of diamonds, from how they form deep in the earth to how they're cut and set.",
+    src: "./images/todo11.webp"
+  },
+
+  /* ---- post that have a timer add ---- */
+  {
+    title: "An evening at Shimansky V&A Waterfront",
+    category: "Events",
+    area: "V&A Waterfront",
+    duration: "Evening",
+    description: "An after-hours evening at our V&A Waterfront showroom, with bubbly, canapés and a first look at new pieces.",
+    src: "./images/todo14.jpg"
+  },
+  {
+    title: "The Cape Town Met",
+    category: "Events",
+    area: "Kenilworth Racecourse",
+    duration: "Full day",
+    description: "Cape Town's most glamorous race day, with fashion, champagne and a fiercely contested feature race.",
+    src: "./images/todo13.jpeg"
+  },
+  {
+    title: "Private chef dinner in Clifton",
+    category: "Food & Wine",
+    area: "Clifton",
+    duration: "Evening",
+    description: "A private chef cooks a multi-course dinner in a villa above the beach as the sun sets over the Atlantic.",
+    src: "./images/todo12.jpg"
+  },
+  {
+    title: "Hot-air balloon over the Winelands",
+    category: "Scenic",
+    area: "Paarl",
+    duration: "Morning",
+    description: "Float over vineyards and mountains at sunrise, followed by a champagne breakfast once you land.",
+    src: "./images/todo11.jpg "
+  }
+];
+
+const LIVE_COUNT = 4; //this 4 posts
+const LIVE_INTERVAL = 4000; //wait 4 seconds 
+
+/* ========================================================= */
+const grid = document.getElementById("expGrid");
+const filtersEl = document.getElementById("filters");
+const categories = ["All", ...new Set(experiences.map(e => e.category))];
+let active = "All";
+
+function renderFilters() {
+  filtersEl.innerHTML = categories.map(c =>
+    `<button type="button" data-cat="${c}" aria-pressed="${c === active}">${c}</button>`).join("");
+}
+
+let shown = experiences.length - LIVE_COUNT;   // how many items are on the page
+let justAdded = -1;                            // index of the item that just arrived
+const firstLive = experiences.length - LIVE_COUNT;
+
+
+// adding the new blogs functons 
+function renderGrid() {
+
+  const live = experiences.slice(firstLive, shown).map((e, k) => ({ ...e, i: firstLive + k })).reverse();
+  const base = experiences.slice(0, firstLive).map((e, i) => ({ ...e, i }));
+  const list = [...live, ...base].filter(e => active === "All" || e.category === active);
+
+  if (!list.length) {
+    grid.innerHTML = `<p class="grid-empty">New events are on their way. Check back in a moment.</p>`;
+    return;
+  }
+  grid.innerHTML = list.map(e => `
+    <article class="exp${e.i === justAdded ? " is-entering" : ""}">
+      ${e.i >= firstLive ? `<span class="exp__new">New</span>` : ""}
+      <div class="exp__img">
+        ${e.src ? `<img src="${e.src}" alt="${e.title}" loading="lazy">` : `<span>${e.title}</span>`}
+      </div>
+      <div class="exp__meta"><span>${e.category}</span><span>${e.area}</span><span>${e.duration}</span></div>
+      <h3>${e.title}</h3>
+      <p>${e.description}</p>
+    </article>`).join("");
+}
+
+filtersEl.addEventListener("click", (ev) => {
+  const b = ev.target.closest("button");
+  if (!b) return;
+  active = b.dataset.cat;
+  justAdded = -1;
+  renderFilters();
+  renderGrid();
+});
+
+/* the Pause/play the hero video */
+const video = document.getElementById("heroVideo");
+const toggle = document.getElementById("videoToggle");
+toggle.addEventListener("click", () => {
+  if (video.paused) { video.play(); toggle.textContent = "Pause video"; toggle.setAttribute("aria-pressed", "false"); }
+  else { video.pause(); toggle.textContent = "Play video"; toggle.setAttribute("aria-pressed", "true"); }
+});
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  video.removeAttribute("autoplay");
+  video.pause();
+  toggle.textContent = "Play video";
+  toggle.setAttribute("aria-pressed", "true");
+}
+
+/* Add the next event every LIVE_INTERVAL ms */
+const liveStatus = document.getElementById("liveStatus");
+const liveText = document.getElementById("liveText");
+let liveTimer = null;
+
+function addNext() {
+  if (shown >= experiences.length) return;
+  justAdded = shown;
+  shown += 1;
+  renderGrid();
+  const added = shown - firstLive;
+  liveText.textContent = `${added} new ${added === 1 ? "event" : "events"} added`;
+  if (shown >= experiences.length) {
+    clearInterval(liveTimer);
+    liveStatus.classList.add("is-done");
+    liveText.textContent = "Up to date";
+  }
+}
+
+const liveObserver = new IntersectionObserver((entries) => {
+  if (entries.some(en => en.isIntersecting)) {
+    liveObserver.disconnect();
+    liveTimer = setInterval(addNext, LIVE_INTERVAL);
+  }
+}, { threshold: 0.15 });
+liveObserver.observe(grid);
+
+renderFilters();
+renderGrid();
+</script>
+</body>
+</html>
