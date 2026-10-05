@@ -57,6 +57,19 @@
     transition: border-color .2s;
   }
   .nav__links a:hover, .nav__links a:focus-visible { border-bottom-color: currentColor; outline: none; }
+  .nav__links button {
+    font: inherit;
+    font-size: 15px;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .nav__links button:hover, .nav__links button:focus-visible { border-bottom-color: currentColor; outline: none; }
+  .nav__links button[aria-pressed="true"] { border-bottom-color: currentColor; font-weight: 600; }
 
   /* ---------- Stage ---------- */
   .stage {
@@ -160,7 +173,9 @@
   /* ---------- Mobile: text sits at the bottom ---------- */
   @media (max-width: 760px) {
     :root { --nav-h: 60px; }
-    .nav__links { display: none; }
+    .nav__links { gap: 12px; }
+    .nav__links button { font-size: 13px; }
+    .nav__logo { font-size: 18px; }
     .panel {
       top: auto;
       bottom: 0;
@@ -178,8 +193,137 @@
     .panel__desc { margin-left: auto; margin-right: auto; }
   }
 
+  /* ---------- Pieces display (opens when you click the middle image) ---------- */
+  .pieces {
+    position: fixed;
+    inset: var(--nav-h) 0 0 0;
+    z-index: 30;
+    background: rgba(255,255,255,.97);
+    color: #1b1b1c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px clamp(20px, 5vw, 72px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .35s ease, visibility .35s;
+    overflow-y: auto;
+  }
+  .pieces.is-open { opacity: 1; visibility: visible; }
+  .pieces__head { text-align: center; margin-bottom: 36px; }
+  .pieces__eyebrow { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; }
+  .pieces__title { font-size: clamp(26px, 3vw, 40px); font-weight: 300; margin-top: 8px; }
+  .pieces__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));   /* 3 images per row */
+    gap: 28px;
+    width: min(1100px, 100%);
+  }
+  .piece { text-align: center; opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s ease; }
+  .pieces.is-open .piece { opacity: 1; transform: none; }
+  .pieces.is-open .piece:nth-child(2) { transition-delay: .08s; }
+  .pieces.is-open .piece:nth-child(3) { transition-delay: .16s; }
+  .piece__img {
+    aspect-ratio: 1 / 1;
+    background: #f1f1f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8a8a8a;
+    font-size: 14px;
+    padding: 16px;
+    overflow: hidden;
+  }
+  .piece__img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .piece__name { margin-top: 16px; font-size: 17px; font-weight: 400; }
+  .piece__detail { margin-top: 4px; font-size: 14px; color: #8a8a8a; }
+  .pieces__close {
+    position: absolute;
+    top: 20px;
+    right: clamp(20px, 4vw, 56px);
+    width: 44px;
+    height: 44px;
+    border: 1px solid #d6d6d6;
+    background: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .pieces__close:hover { border-color: #1b1b1c; }
+  .pieces__empty { color: #8a8a8a; text-align: center; }
+
+  /* silver / gold circles on the right side of the middle wheel image (shown on hover) */
+  .wheel-metals {
+    position: fixed;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transform: translate(-50%, -50%) translateX(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .wheel-metals.is-visible { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%); }
+  body.on-categories .wheel-metals { display: none; }
+  @media (hover: none) {                       /* touch screens: always show */
+    .wheel-metals { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%); }
+  }
+  .metal {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,.15);
+    box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    cursor: pointer;
+    padding: 0;
+  }
+  .metal--silver { background: linear-gradient(135deg, #fafafa 0%, #d4d4d4 45%, #a9a9a9 100%); }
+  .metal--gold   { background: linear-gradient(135deg, #f8e3a1 0%, #d9b45a 50%, #b38a2e 100%); }
+  .metal:hover, .metal:focus-visible { outline: 1px solid #1b1b1c; outline-offset: 3px; }
+  .metal[aria-pressed="true"] { outline: 2px solid #1b1b1c; outline-offset: 3px; }
+
+  /* ---------- Desktop: pieces sit in the white space beside the wheel ---------- */
+  body.pieces-side .pieces {
+    inset: var(--nav-h) 0 0 auto;      /* left is set by the script */
+    background: transparent;
+    align-items: stretch;
+    padding: 24px 40px 24px 0;
+    pointer-events: none;
+  }
+  body.pieces-side .pieces.is-open { pointer-events: auto; }
+  body.pieces-side .pieces__head { text-align: left; margin-bottom: 24px; position: relative; }
+  body.pieces-side .pieces__close { position: absolute; top: 0; right: 0; width: 36px; height: 36px; font-size: 18px; }
+  body.pieces-side .pieces__grid { grid-template-columns: 1fr; gap: 18px; width: 100%; }
+  body.pieces-side .piece {
+    display: grid;
+    grid-template-columns: var(--thumb, 150px) 1fr;
+    align-items: center;
+    gap: 20px;
+    text-align: left;
+    transform: translateX(16px);
+  }
+  body.pieces-side .pieces.is-open .piece { transform: none; }
+  body.pieces-side .piece__img { padding: 10px; }
+  body.pieces-side .piece__name { margin-top: 0; font-size: 16px; }
+
+  .panel__hint { margin-top: 22px; font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 760px) {
+    .pieces { justify-content: flex-start; padding-top: 80px; }
+    .pieces__grid { grid-template-columns: 1fr; max-width: 340px; }
+  }
+
+  @media (max-width: 420px) {
+    .nav { padding: 0 14px; }
+    .nav__links { gap: 9px; }
+    .nav__links button { font-size: 12px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .panel__inner { transition: none; }
+    .pieces, .piece { transition: none; }
   }
 </style>
 </head>
@@ -187,10 +331,12 @@
 
 <nav class="nav">
   <a class="nav__logo" href="#">Logo</a>
-  <ul class="nav__links">
-    <li><a href="#">Collections</a></li>
-    <li><a href="#">About</a></li>
-    <li><a href="#">Contact</a></li>
+  <ul class="nav__links" id="filters" role="group" aria-label="Filter by type">
+    <li><button type="button" data-filter="All" aria-pressed="true">Collections</button></li>
+    <li><button type="button" data-filter="Earrings" aria-pressed="false">Earrings</button></li>
+    <li><button type="button" data-filter="Rings" aria-pressed="false">Rings</button></li>
+    <li><button type="button" data-filter="Necklaces" aria-pressed="false">Necklaces</button></li>
+    <li><button type="button" data-filter="Bracelets" aria-pressed="false">Bracelets</button></li>
   </ul>
 </nav>
 
@@ -208,12 +354,40 @@
   <div class="counter" id="counter"></div>
 </main>
 
+<!-- Silver / gold circles for the middle wheel image -->
+<div class="wheel-metals" id="wheelMetals" role="group" aria-label="Metal">
+  <button type="button" class="metal metal--silver" data-metal="silver" aria-pressed="false" aria-label="Silver"></button>
+  <button type="button" class="metal metal--gold" data-metal="gold" aria-pressed="false" aria-label="Gold"></button>
+</div>
+
+<!-- Pieces the model is wearing -->
+<section class="pieces" id="pieces" role="dialog" aria-modal="true" aria-labelledby="piecesTitle" aria-hidden="true">
+  <div class="pieces__head">
+    <button class="pieces__close" id="piecesClose" type="button" aria-label="Close">×</button>
+    <div class="pieces__eyebrow">Worn in this look</div>
+    <h2 class="pieces__title" id="piecesTitle"></h2>
+  </div>
+  <div class="pieces__grid" id="piecesGrid"></div>
+</section>
+
 <script>
 /* =========================================================
    CONTENT — edit this array.
    src: leave "" until you have the image path/URL.
    details: any number of { label, value } rows.
    ========================================================= */
+/* Each item's "details" is the list of pieces the model is wearing.
+   Add a product photo to each piece's  src: ""  (e.g. src: "./images/infinity-ring.jpg").
+   In a collection, clicking the image in the middle shows these pieces
+   (only the ones of that type, e.g. only rings in the Rings collection).
+   SILVER / GOLD
+   ─────────────
+   Each piece has  metal: ""  — set it to  "silver",  "gold"  or  "both".
+     e.g. { label: "Infinity Ring", value: "18K Yellow Gold", src: "...", metal: "gold" }
+   Clicking the silver or gold circle beside the wheel shows only the pieces of that metal.
+   A piece left as  metal: ""  shows under both until you set it.
+   Optional: add  srcSilver: ""  /  srcGold: ""  to an item (the model photo) or a piece
+   to switch its photo when that metal is chosen. */
 const items = [
   {
     src: "./images/image1.jpg",
@@ -222,9 +396,9 @@ const items = [
     title: "Rings & Bracelets",
     description: "",
     details: [
-      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Pear" },
-      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Round Brilliant, Cushion, Heart, Trilliant & Marquise" },
-      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Oval" }
+      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Pear", src: "https://shimansky.com/cdn/shop/files/Shimansky_5.4_TCW_Fancy_Yellow_Diamond_Dress_Ring_in_18K_White_Yellow_Gold_Front_View.webp?v=1770193831&width=1400", metal: "silver" },
+      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Round Brilliant, Cushion, Heart, Trilliant & Marquise", src: "https://shimansky.com/cdn/shop/files/Shimansky_1.9_TCW_Fancy_Yellow_Dress_Ring_in_18K_White_Yellow_Gold_3D_View.webp?v=1770194869&width=2048", metal: "silver" },
+      { label: "Fancy Yellow Dress Ring", value: "Yellow Diamond Cut: Oval", src: "https://shimansky.com/cdn/shop/files/42181_front_view.png?v=1762418320&width=1400", metal: "silver" }
     ]
   },
   {
@@ -234,9 +408,9 @@ const items = [
     title: "Necklaces & Earrings",
     description: "",
     details: [ 
-      { label: "Small Round Brilliant Diamond Hoop Earrings", value: "Diamond Cut: Round Brilliant" } , 
-      { label: "Diamond Station Tennis Necklace", value: "Diamond Cut: Round Brilliant" },
-      { label: "Circle of Life Diamond Necklace", value: "Diamond Cut: Round Brilliant" }
+      { label: "Small Round Brilliant Diamond Hoop Earrings", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/42061front_3D_ebdbce2f-6c88-458f-85df-d72a720b6151.png?v=1773815917&width=2048", metal: "gold" } , 
+      { label: "Diamond Station Tennis Necklace", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/TNC74_39635-14W-IMAGE01-Front_View_ef347c34-ebf0-4058-9809-edc5d98442c4.jpg?v=1703668083&width=2392", metal: "silver" },
+      { label: "Circle of Life Diamond Necklace", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/CLN01_36389-Y-0.30ct-Circle_of_Life_Necklace-IMAGE_01-FRONT_VIEW_19bfd962-15ee-424e-9b54-72ecc2404a65.png?v=1704356719&width=2048", metal: "gold" }
        
     ]
   },
@@ -247,9 +421,9 @@ const items = [
     title: "Necklaces & Bracelets",
     description: "",
     details: [
-      { label: "Small Southern Cross Diamond Pendant", value: "Diamond Cut: Round Brilliant" },
-      { label: "Southern Cross Diamond Bracelet", value: "Diamond Cut: Round Brilliant" },
-      { label: "Diamond Station Tennis Bracelet", value: "Diamond Cut: Round Brilliant" }
+      { label: "Small Southern Cross Diamond Pendant", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/SCP110.10tcw14WGRBCImage01-FrontView.jpg?v=1742970233&width=2048", metal: "silver" },
+      { label: "Southern Cross Diamond Bracelet", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/SouthernCrossDiamondBracelet-wg-1.png?v=1787831445&width=2048", metal: "silver" },
+      { label: "Diamond Station Tennis Bracelet", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/DiamondStationTennisBracelet-3_6tc-wg-1.png?v=1787824843&width=2048", metal: "silver" }
     ]
   },
   {
@@ -259,24 +433,24 @@ const items = [
     title: "Necklaces, Earrings & Rings",
     description: "",
     details: [
-      { label: "Southern Cross Tsavorite & Diamond Earrings", value: "Tsavorite Cut: Round" },
-      { label: "Southern Cross Tsavorite & Diamond Pendant", value: "Tsavorite Cut: Round" },
-      { label: "Southern Cross Diamond Necklace", value: "Diamond Cut: Round Brilliant" },
-      { label: "Half Eternity Tsavorite Ring", value: "Tsavorite Cut: Round" },
-      { label: "Southern Cross Medium Diamond Ring", value: "Diamond Cut: Round Brilliant" }
+      { label: "Southern Cross Tsavorite & Diamond Earrings", value: "Tsavorite Cut: Round", src: "https://shimansky.com/cdn/shop/files/41356_3D_view.png?v=1761733370&width=2500", metal: "gold" },
+      { label: "Southern Cross Tsavorite & Diamond Pendant", value: "Tsavorite Cut: Round", src: "https://shimansky.com/cdn/shop/files/41323frontview.png?v=1740642702&width=2500", metal: "gold" },
+      { label: "Southern Cross Diamond Necklace", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/products/SCN670.20tcw14YGRBCImage02-FrontView.jpg?v=1681372595&width=2048", metal: "gold" },
+      { label: "Half Eternity Tsavorite Ring", value: "Tsavorite Cut: Round", src: "https://shimansky.com/cdn/shop/files/HalfEternityTsavoriteRing-1_7-yg-1.png?v=1790840505&width=2048", metal: "gold" },
+      { label: "Southern Cross Medium Diamond Ring", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/SCR110.10tcw14YGRBCImage02-FrontView.jpg?v=1692359487&width=2048", metal: "gold" }
     ]
   },
   {
     src: "./images/image5.jpg",
     alt: "Teardrop ring",
     year: "2026",
-    title: "Rings & Bracelets",
-    description: "Tanzanite",
+    title: "Tanzanite",
+    description: "",
     details: [
-      { label: "Tanzanite Oval Microset Overlap Ring", value: "Diamond Cut: Round Brilliant" },
-      { label: "Tanzanite Oval Solitaire Ring", value: "Tanzanite Cut: Oval" },
-      { label: "Toi et Moi Tanzanite Ring", value: "Tanzanite Cut: Pear Shape" },
-      { label: "Emerald-Cut Tanzanite Bezel Set Bracelet", value: "Tanzanite Cut: Emerald Cut" }
+      { label: "Tanzanite Oval Microset Overlap Ring", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/TanzaniteMicrosetOverlapRing-1_5cw-yg-1.png?v=1787651535&width=2048", metal: "gold" },
+      { label: "Tanzanite Oval Solitaire Ring", value: "Tanzanite Cut: Oval", src: "https://shimansky.com/cdn/shop/files/OvalTanzaniteSolitaireRing-18_5c-yg-2.png?v=1787641186&width=2048", metal: "gold" },
+      { label: "Toi et Moi Tanzanite Ring", value: "Tanzanite Cut: Pear Shape", src: "https://shimansky.com/cdn/shop/files/ToietMoiTanzaniteRing-2_1cw-yg-1.png?v=1787645236&width=2048", metal: "gold" },
+      { label: "Emerald-Cut Tanzanite Bezel Set Bracelet", value: "Tanzanite Cut: Emerald Cut", src: "https://shimansky.com/cdn/shop/files/Emerald-CutTanzaniteBezelSetBracelet-1-WG.png?v=1785833348&width=1400", metal: "gold" }
   
     ]
   },
@@ -287,10 +461,10 @@ const items = [
     title: "Rings",
     description: "",
     details: [
-    { label: "Infinity Ring", value: "18K Yellow Gold" },
-      { label: "Open Solitaire Dress Ring", value: "Diamond Cuts: Oval & Pear" },
-      { label: "Table Mountain Gents Single Diamond Ring", value: "Diamond Cut: Round Brilliant" },
-      { label: "Infinity Classic Diamond Ring", value: "Diamond Cut: Round Brilliant" }
+    { label: "Infinity Ring", value: "18K Yellow Gold", src: "https://shimansky.com/cdn/shop/files/InfinityFluetRingin18KYellowGold3DView.jpg?v=1700658482&width=2048", metal: "gold" },
+      { label: "Open Solitaire Dress Ring", value: "Diamond Cuts: Oval & Pear", src: "https://shimansky.com/cdn/shop/files/364383Dview.jpg?v=1762340282&width=3016", metal: "g" },
+      { label: "Table Mountain Gents Single Diamond Ring", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/YGTableMountainplaingentsbandsideview.jpg?v=1737617271&width=1400", metal: "gold" },
+      { label: "Infinity Classic Diamond Ring", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/products/IFR150.90tcwYGRBCImage01-3DView.jpg?v=1681451070&width=2048", metal: "gold" }
     ]
   },
   {
@@ -300,11 +474,11 @@ const items = [
     title: "Necklaces, Earrings & Rings",
     description: "",
     details: [
-      { label: "Southern Cross Tsavorite & Diamond Earrings", value: "Tsavorite Cut: Round" },
-      { label: "Southern Cross Tsavorite & Diamond Pendant", value: "Tsavorite Cut: Round" },
-      { label: "Southern Cross Diamond Necklace", value: "Diamond Cut: Round Brilliant" },
-      { label: "Half Eternity Tsavorite Ring", value: "Tsavorite Cut: Round" },
-      { label: "Southern Cross Medium Diamond Ring", value: "Diamond Cut: Round Brilliant" }
+      { label: "Southern Cross Tsavorite & Diamond Earrings", value: "Tsavorite Cut: Round", src: "https://shimansky.com/cdn/shop/files/41356_3D_view.png?v=1761733370&width=2400", metal: "gold" },
+      { label: "Southern Cross Tsavorite & Diamond Pendant", value: "Tsavorite Cut: Round", src: "https://shimansky.com/cdn/shop/files/41373frontview.png?v=1740645176&width=2400", metal: "gold" },
+      { label: "Southern Cross Diamond Necklace", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/products/SCN670.20tcw14YGRBCImage02-FrontView.jpg?v=1681372595&width=2000", metal: "gold" },
+      { label: "Half Eternity Tsavorite Ring", value: "Tsavorite Cut: Round", src: "https://shimansky.com/cdn/shop/files/HalfEternityTsavoriteRing-1_7-yg-1.png?v=1790840505&width=2000", metal: "gold" },
+      { label: "Southern Cross Medium Diamond Ring", value: "Diamond Cut: Round Brilliant", src: "https://shimansky.com/cdn/shop/files/SCR110.10tcw14YGRBCImage02-FrontView.jpg?v=1692359487&width=2000", metal: "gold" }
     ]
   },
   {
@@ -314,12 +488,74 @@ const items = [
     title: "Earrings & Rings",
     description: "",
     details: [
-      { label: "Fancy Yellow Overlap Ring", value: "Yellow Diamond Cut: Princess" },
-      { label: "Pear Fancy Yellow Overlap Ring", value: "Centre Diamond Cut: Pear" },
-      { label: "Fancy Yellow Diamond Drop Earrings", value: "Yellow Diamond Cut: Pear" }
+      { label: "Fancy Yellow Overlap Ring", value: "Yellow Diamond Cut: Princess", src: "https://shimansky.com/cdn/shop/files/42183frontview.png?v=1754894028&width=2000", metal: "" },
+      { label: "Pear Fancy Yellow Overlap Ring", value: "Centre Diamond Cut: Pear", src: "https://shimansky.com/cdn/shop/files/42147overlapringfrontview..png?v=1753712104&width=2000", metal: "" },
+      { label: "Fancy Yellow Diamond Drop Earrings", value: "Yellow Diamond Cut: Pear", src: "https://shimansky.com/cdn/shop/files/39818frontview.png?v=1762323735&width=2000", metal: "" }
     ]
   }
 ];
+
+/* =========================================================
+   CATEGORIES — each detail row is sorted into a type from its name:
+   "Earrings", "Ring", "Necklace"/"Pendant", "Bracelet".
+   The wheel then shows only the images that include the chosen type.
+   ========================================================= */
+const TYPES = ["Earrings", "Rings", "Necklaces", "Bracelets"];
+function typeOf(label) {
+  const t = label.toLowerCase();
+  if (/earring/.test(t)) return "Earrings";
+  if (/bracelet|bangle/.test(t)) return "Bracelets";
+  if (/necklace|pendant|chain/.test(t)) return "Necklaces";
+  if (/\bring\b|band/.test(t)) return "Rings";
+  return "Other";
+}
+items.forEach(item => {
+  // add  categories: ["Rings", "Bracelets"]  to an item to set its types by hand
+  item.types = new Set(item.categories || (item.details || []).map(d => typeOf(d.label)));
+});
+const MIN_SEGMENTS = 9;   // short lists are repeated so the wheel always looks full
+
+/* =========================================================
+   FIRST WHEEL — the 4 category images shown when the page opens.
+   Clicking one opens that category's collection (the items above).
+   Keep "key" exactly as it is: it links the image to its collection.
+   ========================================================= */
+const categories = [
+  {
+    key: "Earrings",
+    src: "./images/image4.jpg",              // ← add your EARRINGS image here, e.g. "./images/earrings.jpg"
+    alt: "Earrings",
+    year: "2026",
+    title: "Earrings",
+    description: ""       // ← optional short line under the title
+  },
+  {
+    key: "Rings",
+    src: "./images/image6.jpg",              // ← add your RINGS image here, e.g. "./images/rings.jpg"
+    alt: "Rings",
+    year: "2026",
+    title: "Rings",
+    description: ""
+  },
+  {
+    key: "Necklaces",
+    src: "./images/image2.jpg",              // ← add your NECKLACES image here, e.g. "./images/necklaces.jpg"
+    alt: "Necklaces",
+    year: "2026",
+    title: "Necklaces",
+    description: ""
+  },
+  {
+    key: "Bracelets",
+    src: "./images/image12.png",              // ← add your BRACELETS image here, e.g. "./images/bracelets.jpg"
+    alt: "Bracelets",
+    year: "2026",
+    title: "Bracelets",
+    description: ""
+  }
+];
+let loop = true;           // the wheel loops forever
+const START_CATEGORY = 1;  // which category sits in the middle when the page opens (0 = Earrings)
 
 /* =========================================================
 rolling of the well
@@ -340,7 +576,10 @@ const descEl  = document.getElementById("desc");
 const detEl   = document.getElementById("details");
 const counter = document.getElementById("counter");
 
-const N = items.length;
+let filter = "All";
+let list = items;          // the images for the current filter
+let wheel = [];            // what's on the wheel: { item, k } (k = position in list)
+let N = 0;
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let current = 0;   // animated position (float, in items)
@@ -351,8 +590,24 @@ let snapTimer = null;
 let lastDir = 0;
 let rafId = null;
 
-// Build segments from the array
-const segments = items.map((item, i) => {
+// Build the wheel for the current filter
+let segments = [];
+function buildWheel() {
+  segments.forEach(el => el.remove());
+  wheel = [];
+  const isCategory = filter === "All";
+  // first wheel = the 4 categories; otherwise the chosen collection
+  list = isCategory ? categories : items.filter(it => it.types.has(filter));
+  loop = true;                                     // both loop forever
+  if (list.length) {
+    const reps = Math.max(1, Math.ceil(MIN_SEGMENTS / list.length));
+    for (let r = 0; r < reps; r++) list.forEach((item, k) => wheel.push({ item, k, isCategory }));
+  }
+  N = wheel.length;
+  segments = wheel.map(({ item, isCategory }, i) => makeSegment(item, i, isCategory));
+}
+
+function makeSegment(item, i, isCategory) {
   const el = document.createElement("div");
   el.className = "segment";
   el.setAttribute("role", "button");
@@ -361,31 +616,42 @@ const segments = items.map((item, i) => {
 
   if (item.src) {
     const img = document.createElement("img");
-    img.src = item.src;
+    img.src = metalSrc(item);
     img.alt = item.alt || "";
     img.draggable = false;
     el.appendChild(img);
   } else {
     const ph = document.createElement("span");
     ph.className = "segment__placeholder";
-    ph.textContent = `Image ${i + 1}`;
+    ph.textContent = isCategory ? item.title : `Image ${i + 1}`;
     el.appendChild(ph);
   }
 
-  el.addEventListener("click", () => {
-    if (wasDrag) return;
-    goTo(current + wrap(i - current));
-  });
+  // hovering the middle image shows the silver / gold circles
+  if (!isCategory) {
+    el.addEventListener("mouseenter", () => { if (i === active) showMetals(); });
+    el.addEventListener("mouseleave", hideMetalsSoon);
+  }
+
+  // runs when the image is clicked or tapped (see endDrag)
+  el._activate = () => {
+    if (isCategory) setFilter(item.key);          // open that category's collection
+    else if (i === active) openPieces(item);       // middle image: show the pieces she's wearing
+    else goTo(current + wrap(i - current));        // other images: bring to the middle
+  };
 
   stage.appendChild(el);
   return el;
-});
+}
 
 // Wrap an offset into [-N/2, N/2) so the wheel loops forever
 function wrap(d) {
+  if (!loop) return d;                            // category row doesn't loop
   return ((d % N) + N + N / 2) % N - N / 2;
 }
-const mod = (n) => ((n % N) + N) % N;
+const mod = (n) => loop ? ((n % N) + N) % N : Math.min(N - 1, Math.max(0, n));
+const limit = (t) => loop ? t : Math.min(N - 1, Math.max(0, t));
+const soften = (t) => loop ? t : Math.min(N - 0.6, Math.max(-0.4, t));
 
 /* ---------- Geometry ---------- */
 function layout() {
@@ -432,7 +698,23 @@ function layout() {
     el.style.webkitClipPath = path;
   });
 
-  geom = { cx, cy, r, mobile };
+  // silver / gold circles: just outside the right edge of the middle image
+  const stageTop = stage.getBoundingClientRect().top;
+  wheelMetals.style.left = Math.min(cx + R + (mobile ? 22 : 34), w - 18) + "px";
+  wheelMetals.style.top = (stageTop + cy) + "px";
+
+  // white space to the right of the wheel, used for the pieces display on desktop
+  const sideLeft = cx + R + 80;            // leaves room for the silver / gold circles
+  const sideW = w - sideLeft - 32;
+  const side = !mobile && sideW >= 300;
+  document.body.classList.toggle("pieces-side", side);
+  if (side) {
+    piecesEl.style.left = sideLeft + "px";
+    piecesEl.style.setProperty("--thumb", Math.round(Math.min(170, (h - 190) / 3, sideW * 0.42)) + "px");
+  } else {
+    piecesEl.style.left = "";
+  }
+  geom = { cx, cy, r, mobile, side };
   fitPanel();
   render();
 }
@@ -461,6 +743,7 @@ function fitPanel() {
 
 /* ---------- Drawing ---------- */
 function render() {
+  if (!N) return;
   segments.forEach((el, i) => {
     const d = wrap(i - current);
     const deg = d * STEP_DEG;
@@ -477,36 +760,51 @@ function render() {
 }
 
 function setActive(idx) {
+  if (wheel[idx]) syncMetals(wheel[idx].item);
   const first = active === -1;
   active = idx;
-  counter.textContent = `${idx + 1} / ${N}`;
+  counter.textContent = `${wheel[idx].k + 1} / ${list.length}`;
   segments.forEach((el, i) => el.setAttribute("aria-current", i === idx ? "true" : "false"));
 
   if (first || reduceMotion) {
-    fillPanel(items[idx]);
+    fillPanel(wheel[idx].item);
     return;
   }
   panel.classList.add("is-changing");
   clearTimeout(setActive.t);
   setActive.t = setTimeout(() => {
-    fillPanel(items[active]);
+    fillPanel(wheel[active].item);
+    if (piecesOpen && !wheel[active].isCategory) renderPieces(wheel[active].item);
     panel.classList.remove("is-changing");
   }, 220);
 }
 
 function fillPanel(item) {
   yearEl.textContent  = item.year || "";
-  titleEl.textContent = item.title || "";
+  titleEl.textContent = filter === "All" ? (item.title || "") : filter;
+  if (item.key) {                                  // a category on the first wheel
+    const n = new Set(items.flatMap(it => it.details || [])
+      .filter(d => typeOf(d.label) === item.key).map(d => d.label + "|" + d.value)).size;  // pieces, counted once
+    item = { ...item, details: [{ label: `${n} ${n === 1 ? "piece" : "pieces"}`, value: "Click the image to view the collection" }] };
+  }
   descEl.textContent  = item.description || "";
   descEl.style.display = item.description ? "" : "none";
   detEl.innerHTML = "";
-  (item.details || []).forEach(({ label, value }) => {
+  (item.details || [])
+    .filter(d => filter === "All" || typeOf(d.label) === filter)
+    .forEach(({ label, value }) => {
     const row = document.createElement("div");
     row.innerHTML = `<dt></dt><dd></dd>`;
     row.querySelector("dt").textContent = label;
     row.querySelector("dd").textContent = value;
     detEl.appendChild(row);
   });
+  if (!item.key) {                                 // in a collection, not on the category wheel
+    const hint = document.createElement("p");
+    hint.className = "panel__hint";
+    hint.textContent = "Click the image to see the pieces";
+    detEl.appendChild(hint);
+  }
   if (geom.cx !== undefined) fitPanel();
 }
 
@@ -527,7 +825,7 @@ function animate() {
   if (!rafId) rafId = requestAnimationFrame(tick);
 }
 function goTo(t) {
-  target = t;
+  target = limit(t);
   animate();
 }
 function scheduleSnap() {
@@ -540,11 +838,12 @@ function scheduleSnap() {
 
 /* ---------- Input: mouse wheel / trackpad ---------- */
 window.addEventListener("wheel", (e) => {
+  if (piecesOpen && !geom.side) return;             // full-screen version: let it scroll instead
   e.preventDefault();
   const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
   const px = e.deltaMode === 1 ? delta * 40 : delta; // line mode → px
   lastDir = Math.sign(px);
-  target += px * WHEEL_SENS;
+  target = soften(target + px * WHEEL_SENS);
   animate();
   scheduleSnap();
 }, { passive: false });
@@ -567,14 +866,19 @@ stage.addEventListener("pointermove", (e) => {
     stage.classList.add("is-dragging");
   }
   lastDir = Math.sign(dy);
-  target = startTarget + dy * DRAG_SENS;
+  target = soften(startTarget + dy * DRAG_SENS);
   animate();
 });
-function endDrag() {
+function endDrag(e) {
   if (!dragging) return;
   dragging = false;
   stage.classList.remove("is-dragging");
   if (wasDrag) goTo(Math.round(target + 0.3 * lastDir));
+  else if (e && e.type === "pointerup") {
+    // a click, not a drag: find the image under the pointer
+    const seg = document.elementFromPoint(e.clientX, e.clientY)?.closest(".segment");
+    if (seg && seg._activate) seg._activate();
+  }
   setTimeout(() => (wasDrag = false), 0);
 }
 stage.addEventListener("pointerup", endDrag);
@@ -582,6 +886,8 @@ stage.addEventListener("pointercancel", endDrag);
 
 /* ---------- Input: keyboard ---------- */
 window.addEventListener("keydown", (e) => {
+  if (piecesOpen && e.key === "Escape") { closePieces(); return; }
+  if (piecesOpen && !geom.side) return;
   if (["ArrowDown", "ArrowRight", "PageDown"].includes(e.key)) {
     e.preventDefault();
     goTo(Math.round(target) + 1);
@@ -591,7 +897,133 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+/* ---------- Silver / gold circles on the wheel ---------- */
+const wheelMetals = document.getElementById("wheelMetals");
+let metalsTimer = null;
+
+function metalSrc(item) {
+  return (item._metal === "gold" && item.srcGold) || (item._metal === "silver" && item.srcSilver) || item.src;
+}
+function showMetals() {
+  clearTimeout(metalsTimer);
+  wheelMetals.classList.add("is-visible");
+}
+function hideMetalsSoon() {
+  clearTimeout(metalsTimer);
+  metalsTimer = setTimeout(() => wheelMetals.classList.remove("is-visible"), 250);
+}
+function syncMetals(item) {
+  wheelMetals.querySelectorAll(".metal").forEach(b =>
+    b.setAttribute("aria-pressed", item && item._metal === b.dataset.metal ? "true" : "false"));
+}
+wheelMetals.addEventListener("mouseenter", showMetals);
+wheelMetals.addEventListener("mouseleave", hideMetalsSoon);
+wheelMetals.addEventListener("click", (e) => {
+  const btn = e.target.closest(".metal");
+  if (!btn || !wheel[active] || wheel[active].isCategory) return;
+  const item = wheel[active].item;
+  item._metal = item._metal === btn.dataset.metal ? null : btn.dataset.metal;   // click again to clear
+  syncMetals(item);
+  // swap the model photo on every copy of this image on the wheel
+  wheel.forEach((w, i) => {
+    if (w.item !== item) return;
+    const img = segments[i].querySelector("img");
+    if (img) img.src = metalSrc(item);
+  });
+  if (piecesOpen) renderPieces(item);
+  else openPieces(item);                            // show the filtered pieces straight away
+});
+
+/* ---------- Pieces display ---------- */
+const piecesEl = document.getElementById("pieces");
+const piecesGrid = document.getElementById("piecesGrid");
+let piecesOpen = false;
+let piecesReturnFocus = null;
+
+function openPieces(item) {
+  renderPieces(item);
+  piecesReturnFocus = document.activeElement;
+  piecesOpen = true;
+  piecesEl.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => piecesEl.classList.add("is-open"));
+  if (!geom.side) document.getElementById("piecesClose").focus();
+}
+
+function renderPieces(item) {
+  // only the pieces of the open collection's type (e.g. rings in Rings)
+  // ...and, if silver or gold is chosen, only the pieces in that metal
+  const metal = item._metal;                         // "silver", "gold" or null
+  const list = (item.details || [])
+    .filter(d => filter === "All" || typeOf(d.label) === filter)
+    .filter(d => !metal || !d.metal || d.metal === metal || d.metal === "both");
+  const heading = filter === "All" ? (item.title || "") : filter;
+  document.getElementById("piecesTitle").textContent =
+    metal ? `${heading} · ${metal === "gold" ? "Gold" : "Silver"}` : heading;
+  piecesGrid.innerHTML = "";
+  if (!list.length) {
+    piecesGrid.innerHTML = metal
+      ? `<p class="pieces__empty">No ${metal} pieces in this look.</p>`
+      : `<p class="pieces__empty">No pieces listed for this image yet.</p>`;
+  }
+  list.forEach((piece) => {
+    const { label, value, src } = piece;
+    const card = document.createElement("article");
+    card.className = "piece";
+    card.innerHTML = `
+      <div class="piece__img"></div>
+      <div class="piece__text">
+        <h3 class="piece__name"></h3>
+        <p class="piece__detail"></p>
+      </div>`;
+    const box = card.querySelector(".piece__img");
+    const showImage = (url) => {
+      box.innerHTML = "";
+      if (url) {
+        const img = document.createElement("img");
+        img.src = url; img.alt = label;
+        box.appendChild(img);
+      } else {
+        box.textContent = label;                    // placeholder until src is added
+      }
+    };
+    // follow the silver / gold choice made on the wheel image
+    showImage((item._metal === "gold" && piece.srcGold) || (item._metal === "silver" && piece.srcSilver) || src);
+    card.querySelector(".piece__name").textContent = label;
+    card.querySelector(".piece__detail").textContent = value;
+    piecesGrid.appendChild(card);
+  });
+}
+
+function closePieces() {
+  piecesOpen = false;
+  piecesEl.classList.remove("is-open");
+  piecesEl.setAttribute("aria-hidden", "true");
+  if (piecesReturnFocus) piecesReturnFocus.focus();
+}
+document.getElementById("piecesClose").addEventListener("click", closePieces);
+piecesEl.addEventListener("click", (e) => { if (e.target === piecesEl) closePieces(); });
+
+/* ---------- Filters (Earrings / Rings / Necklaces / Bracelets) ---------- */
+function setFilter(f) {
+  if (piecesOpen) closePieces();
+  filter = f;
+  document.body.classList.toggle("on-categories", f === "All");
+  document.querySelectorAll("[data-filter]").forEach(b =>
+    b.setAttribute("aria-pressed", b.dataset.filter === f ? "true" : "false"));
+  buildWheel();
+  current = target = f === "All" ? START_CATEGORY : 0;
+  active = -1;
+  layout();
+}
+document.getElementById("filters").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-filter]");
+  if (b && b.dataset.filter !== filter) setFilter(b.dataset.filter);
+});
+
 window.addEventListener("resize", layout);
+document.body.classList.add("on-categories");
+buildWheel();
+current = target = START_CATEGORY;
 layout();
 </script>
 </body>
